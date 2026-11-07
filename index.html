@@ -255,7 +255,7 @@
 /* ===== 갤러리 사진 목록 =====
    images/gallery(큰 사진)와 images/thumb(작은 사진)에 같은 이름(01.jpg…)으로 들어 있어요.
    사진을 빼거나 더하면 파일 번호를 이어지게 맞추고 아래 숫자를 바꾸세요. */
-const GALLERY_COUNT = 31;
+const GALLERY_COUNT = 29;
 const NAMES = Array.from({length: GALLERY_COUNT}, (_, i) => `${String(i + 1).padStart(2, '0')}.jpg`);
 const PHOTOS = NAMES.map(n => `images/gallery/${n}`);   // 크게 보기용
 const THUMBS = NAMES.map(n => `images/thumb/${n}`);     // 목록용 작은 사진
