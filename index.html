@@ -11,7 +11,7 @@
 <meta property="og:image" content="https://jangjean.github.io/wedding/images/og.jpg">
 <meta property="og:url" content="https://jangjean.github.io/wedding/">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@300;400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Great+Vibes&family=Noto+Sans+KR:wght@300;400&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#faf8f5; --paper:#ffffff; --ink:#3b3632; --soft:#8a817a;
@@ -29,7 +29,28 @@
 
   /* 메인 */
   .hero{padding:0}
-  .hero-photo{width:100%;aspect-ratio:2/3;object-fit:cover;display:block;background:linear-gradient(160deg,#e9e1d9,#d8cbc0)}
+  .hero-media{position:relative;width:100%;aspect-ratio:2/3;overflow:hidden;background:#fbfaf8}
+  .hero-photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;transform-origin:0 0;will-change:transform,opacity}
+  /* ── 일러스트 → 사진 전환 ──
+     두 이미지의 인물(얼굴·머리·맞잡은 손) 위치를 측정해 겹치도록 계산한 값입니다.
+     1) 처음: 일러스트 원본 그대로, 사진은 일러스트 인물에 맞춘 크기·위치로 숨어 있음
+     2) push: 일러스트가 살짝 확대 (사진도 같은 기준으로 맞춰져 있음)
+     3) morph: 일러스트는 사라지고 사진이 나타나면서, 둘이 함께 사진 원래 구도로 이동 */
+  .hero-illust{z-index:1;transform:none;opacity:1}
+  .hero-real{opacity:0;transform:translate(-8.384%,-25.408%) scale(1.2584)}
+  .hero-media.push .hero-illust{transform:translate(-5.25%,0) scale(1.105);transition:transform 1.1s cubic-bezier(.45,0,.55,1)}
+  .hero-media.morph .hero-illust{transform:translate(2.49%,20.19%) scale(.8781);opacity:0;
+    transition:transform 2.6s cubic-bezier(.6,0,.25,1),opacity 1.5s ease .25s}
+  .hero-media.morph .hero-real{transform:none;opacity:1;
+    transition:transform 2.6s cubic-bezier(.6,0,.25,1),opacity 1.3s ease .25s}
+  /* 하늘 위 손글씨 문구 */
+  .hero-script{position:absolute;left:0;right:0;top:5%;z-index:3;pointer-events:none;opacity:0;transition:opacity .4s}
+  .hero-script svg{display:block;width:84%;margin:0 auto;overflow:visible;filter:drop-shadow(0 1px 6px rgba(40,50,60,.35))}
+  .hero-script text{font-family:'Great Vibes',cursive;font-size:88px;fill:#fff}
+  .hero-media.written .hero-script{opacity:1}
+  @media (prefers-reduced-motion: reduce){
+    .hero-media.push .hero-illust,.hero-media.morph .hero-illust,.hero-media.morph .hero-real{transition:opacity .6s ease}
+    .hero-media.morph .hero-real{transform:none}}
   .hero-text{padding:40px 28px 56px}
   .hero-date{font-family:'Gowun Batang',serif;font-size:15px;letter-spacing:.2em;color:var(--soft)}
   .hero-names{font-family:'Gowun Batang',serif;font-size:26px;margin:16px 0 10px;letter-spacing:.08em}
@@ -106,7 +127,28 @@
 
   <!-- 메인 -->
   <section class="hero">
-    <img class="hero-photo" src="images/main.jpg" alt="이동석 장유진 웨딩 사진" onerror="this.removeAttribute('src')">
+    <!-- 일러스트가 먼저 보이고, 잠시 뒤 대표 사진으로 바뀝니다 (화면을 누르면 바로 바뀜) -->
+    <div class="hero-media" id="heroMedia">
+      <img class="hero-photo hero-real" id="heroReal" src="images/main.jpg" alt="이동석 장유진 웨딩 사진">
+      <img class="hero-photo hero-illust" id="heroIllust" src="images/illust.jpg" alt="이동석 장유진 웨딩 일러스트">
+      <!-- 사진으로 바뀐 뒤 하늘에 써지는 문구 (글자를 바꾸려면 아래 text 안의 내용만 수정) -->
+      <div class="hero-script" aria-hidden="true">
+        <svg viewBox="0 0 640 150">
+          <defs>
+            <linearGradient id="penEdge" x1="0" x2="1" y1="0" y2="0">
+              <stop offset="0" stop-color="#fff"/><stop offset=".9" stop-color="#fff"/><stop offset="1" stop-color="#000"/>
+            </linearGradient>
+            <mask id="penMask" maskUnits="userSpaceOnUse" x="-120" y="-60" width="900" height="300">
+              <rect id="penRect" x="-900" y="-60" width="900" height="300" fill="url(#penEdge)">
+                <animate id="penAnim" attributeName="x" from="-900" to="-60" dur="2.6s" begin="indefinite" fill="freeze"
+                         calcMode="spline" keyTimes="0;1" keySplines=".45 .05 .55 .95"/>
+              </rect>
+            </mask>
+          </defs>
+          <text x="320" y="105" text-anchor="middle" mask="url(#penMask)">Our Wedding Day</text>
+        </svg>
+      </div>
+    </div>
     <div class="hero-text">
       <p class="hero-date">2027. 02. 14 SUN</p>
       <p class="hero-names">이동석<span>&amp;</span>장유진</p>
@@ -218,6 +260,35 @@ const NAMES = Array.from({length: GALLERY_COUNT}, (_, i) => `${String(i + 1).pad
 const PHOTOS = NAMES.map(n => `images/gallery/${n}`);   // 크게 보기용
 const THUMBS = NAMES.map(n => `images/thumb/${n}`);     // 목록용 작은 사진
 const INITIAL = 12;
+
+/* 메인: 일러스트 → 대표 사진 전환 */
+(function () {
+  const HOLD_MS = 1000;   // 일러스트를 그대로 보여주는 시간
+  const MORPH_MS = 2600;  // 사진 구도로 돌아오는 시간 (CSS의 2.6s와 같게)
+  const PUSH_MS = 1100;   // 살짝 확대되는 시간 (CSS의 1.1s와 같게)
+  const box = document.getElementById('heroMedia');
+  const real = document.getElementById('heroReal');
+  let started = false, timers = [];
+  // 문구 쓰기: 손글씨 글꼴이 준비된 뒤 시작 (최대 1.5초 기다림)
+  let wrote = false;
+  function write() {
+    if (wrote) return; wrote = true;
+    const start = () => { box.classList.add('written'); const a = document.getElementById('penAnim'); if (a && a.beginElement) a.beginElement(); else document.getElementById('penRect').setAttribute('x', -60); };
+    const fontReady = document.fonts && document.fonts.load ? document.fonts.load('88px "Great Vibes"') : Promise.resolve();
+    Promise.race([fontReady, new Promise(r => setTimeout(r, 1500))]).then(start, start);
+  }
+  function doMorph() { box.classList.add('morph'); timers.push(setTimeout(write, MORPH_MS - 200)); }
+  function go(skipHold) {
+    if (started) return; started = true;
+    timers.forEach(clearTimeout);
+    const doPush = () => { box.classList.add('push'); timers.push(setTimeout(doMorph, PUSH_MS)); };
+    skipHold ? doPush() : timers.push(setTimeout(doPush, HOLD_MS));
+  }
+  // 대표 사진을 다 받은 뒤에 시작 (빈 화면 방지)
+  const ready = () => go(false);
+  if (real.complete && real.naturalWidth) ready(); else real.addEventListener('load', ready);
+  box.addEventListener('click', () => { if (!started) go(true); else if (!box.classList.contains('morph')) { timers.forEach(clearTimeout); box.classList.add('push'); doMorph(); } });
+})();
 
 /* 달력 (2027년 2월) */
 (function () {
